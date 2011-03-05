@@ -226,6 +226,7 @@
     <Compile Include="Rendering\PrimitiveBuffer.cs" />
     <Compile Include="Rendering\RenderContext.cs" />
     <Compile Include="Rendering\TextBuffer.cs" />
+    <Compile Include="ScreenManagement\AsyncExecutor.cs" />
     <Compile Include="ScreenManagement\DialogData.cs" />
     <Compile Include="ScreenManagement\ScreenManagerMessaging.cs" />
     <Compile Include="Controls\Visuals\VirtualKeyboardControl.cs" />

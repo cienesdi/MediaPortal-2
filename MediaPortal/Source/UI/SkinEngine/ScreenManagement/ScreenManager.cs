@@ -270,8 +270,6 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
     protected Theme _theme = null;
 
     protected AsynchronousMessageQueue _messageQueue;
-    protected Thread _garbageCollectorThread;
-    protected Queue<Screen> _garbageScreens = new Queue<Screen>(10);
 
     #endregion
 
@@ -301,13 +299,6 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
         screenSettings.Theme = _theme == null ? null : _theme.Name;
         ServiceRegistration.Get<ISettingsManager>().Save(screenSettings);
       }
-      _garbageCollectorThread = new Thread(DoGarbageCollection)
-        {
-          Name = "ScrMgrGC",  //garbage collector thread
-            Priority = ThreadPriority.Lowest,
-            IsBackground = true
-        };
-      _garbageCollectorThread.Start();
     }
 
     void OnMessageReceived(AsynchronousMessageQueue queue, SystemMessage message)
@@ -371,53 +362,9 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
       _messageQueue = null;
     }
 
-    protected void DoGarbageCollection()
+    protected void ScheduleDisposeScreen(Screen oldScreen)
     {
-      while (true)
-      {
-        Screen screen;
-        bool active = true;
-        while (active)
-        {
-          lock (_syncObj)
-            screen = _garbageScreens.Count == 0 ? null : _garbageScreens.Dequeue();
-          if (screen == null)
-            active = false;
-          else
-            screen.Close();
-        }
-        lock (_syncObj)
-          if (_terminated)
-          {
-            if (_garbageScreens.Count == 0)
-              break;
-            // else: run another loop to clean up the rest of the screens
-          }
-          else
-            Monitor.Wait(_syncObj);
-      }
-    }
-
-    protected void FinishGarbageCollection()
-    {
-      lock (_syncObj)
-      {
-        _garbageCollectorThread.Priority = ThreadPriority.AboveNormal;
-        _terminated = true;
-        Monitor.PulseAll(_syncObj);
-      }
-      ServiceRegistration.Get<ILogger>().Debug("ScreenManager: Waiting for screen garbage collection...");
-      _garbageCollectorThread.Join();
-      ServiceRegistration.Get<ILogger>().Debug("ScreenManager: Screen garbage collection finished");
-    }
-
-    protected void ScheduleDisposeScreen(Screen screen)
-    {
-      lock (_syncObj)
-      {
-        _garbageScreens.Enqueue(screen);
-        Monitor.PulseAll(_syncObj);
-      }
+      AsyncExecutor.ScheduleWork(oldScreen.Close);
     }
 
     protected internal void IncPendingOperations()
@@ -908,7 +855,7 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
       UnsubscribeFromMessages();
       // Close all screens to make sure all SlimDX objects are correctly cleaned up
       DoCloseCurrentScreenAndDialogs(true, true, false);
-      FinishGarbageCollection();
+      AsyncExecutor.FinishWork();
 
       _skinManager.Dispose();
       Fonts.FontManager.Unload();

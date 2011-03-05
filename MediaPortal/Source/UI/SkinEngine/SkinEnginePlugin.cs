@@ -66,12 +66,9 @@ namespace MediaPortal.UI.SkinEngine
         });
       inputManager.AddKeyBinding(Key.Fullscreen, () =>
         {
-          //switch to fullscreen
+          // Toggle fullscreen state
           IScreenControl sc = ServiceRegistration.Get<IScreenControl>();
-          if (sc.IsFullScreen)
-            sc.SwitchMode(ScreenMode.NormalWindowed);
-          else
-            sc.SwitchMode(ScreenMode.FullScreen);
+          sc.SwitchMode(sc.IsFullScreen ? ScreenMode.NormalWindowed : ScreenMode.FullScreen);
         });
     }
 
@@ -113,6 +110,9 @@ namespace MediaPortal.UI.SkinEngine
     {
       ILogger logger = ServiceRegistration.Get<ILogger>();
       logger.Info("SkinEnginePlugin: Startup");
+
+      AsyncExecutor.Start();
+
       SlimDX.Configuration.EnableObjectTracking = true;
 
       logger.Debug("SkinEnginePlugin: Create DirectX main window");
@@ -157,11 +157,13 @@ namespace MediaPortal.UI.SkinEngine
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Removing IGeometryManager service");
       ServiceRegistration.Remove<IGeometryManager>();
 
-      SkinEngine.Controls.Brushes.BrushCache.Instance.Clear();
+      Controls.Brushes.BrushCache.Instance.Clear();
 
       ServiceRegistration.Get<ContentManager>().Clear();
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Removing ContentManager service");
       ServiceRegistration.Remove<ContentManager>();
+
+      AsyncExecutor.Shutdown(true);
     }
 
     public void Dispose()
