@@ -352,7 +352,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
           _screenManager.Render();
 
           _device.EndScene();
-          _device.PresentEx(Present.ForceImmediate);
+          _device.PresentEx(Present.None);
 
           _fpsCounter += 1;
           TimeSpan ts = DateTime.Now - _fpsTimer;

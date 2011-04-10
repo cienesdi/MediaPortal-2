@@ -38,7 +38,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     public DeviceCombo WindowedDeviceCombo;
     public DisplayMode WindowedDisplayMode; // not changable by the user
     public Format WindowedDepthStencilBufferFormat;
-    public MultisampleType WindowedMultisampleType;
+    public MultisampleType WindowedMultisampleType = MultisampleType.TwoSamples;
     public int WindowedMultisampleQuality;
     public VertexProcessingType WindowedVertexProcessingType;
     public PresentInterval WindowedPresentInterval;

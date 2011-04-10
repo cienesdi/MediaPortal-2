@@ -1017,9 +1017,9 @@ namespace MediaPortal.UI.SkinEngine.DirectX
 
       if (_graphicsSettings.IsWindowed)
       {
-        _presentParams.Multisample = MultisampleType.None;// _graphicsSettings.WindowedMultisampleType;
-        _presentParams.MultisampleQuality = 0;// _graphicsSettings.WindowedMultisampleQuality;
-        //_presentParams.AutoDepthStencilFormat = _graphicsSettings.WindowedDepthStencilBufferFormat;
+        _presentParams.Multisample = _graphicsSettings.WindowedMultisampleType;
+        _presentParams.MultisampleQuality = _graphicsSettings.WindowedMultisampleQuality;
+        _presentParams.AutoDepthStencilFormat = _graphicsSettings.WindowedDepthStencilBufferFormat;
         _presentParams.BackBufferWidth = _ourRenderTarget.ClientRectangle.Width;
         _presentParams.BackBufferHeight = _ourRenderTarget.ClientRectangle.Height;
         _presentParams.BackBufferFormat = _graphicsSettings.BackBufferFormat;
@@ -1033,7 +1033,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
           _presentParams.PresentationInterval = PresentInterval.One; // Immediate.Default;
 #endif
         _presentParams.FullScreenRefreshRateInHertz = 0;
-        _presentParams.SwapEffect = SwapEffect.FlipEx;
+        _presentParams.SwapEffect = SwapEffect.Discard;
         _presentParams.PresentFlags = PresentFlags.Video; //PresentFlag.LockableBackBuffer;
         _presentParams.DeviceWindowHandle = _ourRenderTarget.Handle;
         _presentParams.Windowed = true;
@@ -1059,7 +1059,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
           _presentParams.PresentationInterval = PresentInterval.One;
 #endif
         _presentParams.FullScreenRefreshRateInHertz = _graphicsSettings.DisplayMode.RefreshRate;
-        _presentParams.SwapEffect = SwapEffect.FlipEx;
+        _presentParams.SwapEffect = SwapEffect.Discard;
         _presentParams.PresentFlags = PresentFlags.Video; //|PresentFlag.LockableBackBuffer;
         _presentParams.DeviceWindowHandle = _window.Handle;
         _presentParams.Windowed = false;
