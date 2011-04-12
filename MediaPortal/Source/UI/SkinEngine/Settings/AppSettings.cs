@@ -31,6 +31,14 @@ namespace MediaPortal.UI.SkinEngine.Settings
     protected int _fsScreenNum;
     protected bool _fullScreen;
     protected bool _cellPhoneInputStyle;
+    protected int _multiSampleTypeIndex;
+
+    [Setting(SettingScope.User, 0)]
+    public int MultiSampleType
+    {
+      get { return _multiSampleTypeIndex; }
+      set { _multiSampleTypeIndex = value; }
+    }
 
     [Setting(SettingScope.User, false)]
     public bool FullScreen

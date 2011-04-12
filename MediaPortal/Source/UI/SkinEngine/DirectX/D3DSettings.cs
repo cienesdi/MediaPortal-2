@@ -58,6 +58,26 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     public VertexProcessingType FullscreenVertexProcessingType;
     public PresentInterval FullscreenPresentInterval;
 
+    public SwapEffect WindowedSwapEffect
+    {
+      get
+      {
+        return WindowedMultisampleType == MultisampleType.None
+                 ? SwapEffect.FlipEx
+                 : SwapEffect.Discard;
+      }
+    }
+
+    public Present WindowedPresent
+    {
+      get
+      {
+        return WindowedMultisampleType == MultisampleType.None
+                 ? Present.ForceImmediate
+                 : Present.None;
+      }
+    }
+
     public GraphicsAdapterInfo AdapterInfo
     {
       get { return IsWindowed ? WindowedAdapterInfo : FullscreenAdapterInfo; }

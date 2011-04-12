@@ -63,6 +63,11 @@
         Text="[Settings.Appearance.System.CellPhoneInputStyle]"
         HelpText="[Settings.Appearance.System.CellPhoneInputStyle.Help]"
         ClassName="MediaPortal.UI.SkinEngine.Settings.Configuration.Appearance.CellPhoneInputStyle"/>
+    <ConfigSetting
+        Id="MultiSampleType"
+        Text="[Settings.Appearance.System.MultiSampleType]"
+        HelpText="[Settings.Appearance.System.MultiSampleType.Help]"
+        ClassName="MediaPortal.UI.SkinEngine.Settings.Configuration.Appearance.MultiSampleType"/>
   </Register>
 
   <!-- Contents of '/Appearance/Skin' section -->
