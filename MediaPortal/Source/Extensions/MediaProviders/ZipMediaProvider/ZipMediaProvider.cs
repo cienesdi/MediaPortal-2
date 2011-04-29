@@ -32,7 +32,7 @@ using ICSharpCode.SharpZipLib.Zip;
 namespace MediaPortal.Extensions.MediaProviders.ZipMediaProvider
 {
   /// <summary>
-  /// Media provider implementation for the ZIP files.
+  /// Media provider implementation for ZIP files.
   /// </summary>
   public class ZipMediaProvider : IChainedMediaProvider
   {
