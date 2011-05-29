@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using MediaPortal.Core.General;
 using MediaPortal.UI.SkinEngine.MarkupExtensions;
+using MediaPortal.UI.SkinEngine.SkinManagement;
 using MediaPortal.Utilities.DeepCopy;
 using MediaPortal.UI.SkinEngine.Xaml;
 using MediaPortal.UI.SkinEngine.Xaml.Interfaces;
@@ -46,6 +47,7 @@ namespace MediaPortal.UI.SkinEngine.MpfElements
     protected IDictionary<string, AbstractProperty> _attachedProperties = null; // Lazy initialized
     protected AbstractProperty _dataContextProperty;
     protected AbstractProperty _logicalParentProperty;
+    protected bool _isTheme = false;
 
     #endregion
 
@@ -200,7 +202,10 @@ namespace MediaPortal.UI.SkinEngine.MpfElements
     #region IInitializable implementation
 
     public virtual void StartInitialization(IParserContext context)
-    {}
+    {
+      bool? isTheme = (bool?) context.GetContextVariable(XamlLoader.KEY_IS_THEME);
+      _isTheme = isTheme.HasValue && isTheme.Value;
+    }
 
     public virtual void FinishInitialization(IParserContext context)
     {
