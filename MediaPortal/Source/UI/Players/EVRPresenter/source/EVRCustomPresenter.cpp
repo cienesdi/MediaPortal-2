@@ -34,6 +34,8 @@ EVRCustomPresenter::EVRCustomPresenter(IEVRCallback* callback, IDirect3DDevice9E
 {
   hr = S_OK;
 
+  Log("EVRCustomPresenter::EVRCustomPresenter ---- custom test build initializing ----");
+
   // Initial source rectangle = (0,0,1,1)
   m_nrcSource.top = 0;
   m_nrcSource.left = 0;
@@ -58,7 +60,6 @@ EVRCustomPresenter::EVRCustomPresenter(IEVRCallback* callback, IDirect3DDevice9E
 EVRCustomPresenter::~EVRCustomPresenter()
 {
 }
-
 
 // Init EVR Presenter (called by VideoPlayer.cs)
 __declspec(dllexport) int EvrInit(IEVRCallback* callback, DWORD dwD3DDevice, IBaseFilter* evrFilter, HWND hwnd)

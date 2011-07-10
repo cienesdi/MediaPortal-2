@@ -43,6 +43,10 @@ class EVRCustomPresenter :
 {
 
 public:
+  // Constructor
+  EVRCustomPresenter(IEVRCallback* callback, IDirect3DDevice9Ex* d3DDevice, HWND hwnd, HRESULT& hr);
+  virtual ~EVRCustomPresenter();
+
   // Defines the state of the presenter. 
   enum RENDER_STATE
   {
@@ -61,7 +65,6 @@ public:
     FRAMESTEP_SCHEDULED,        // Submitted a sample for rendering.
     FRAMESTEP_COMPLETE          // Sample was rendered. 
   };
-
 
   // IMFVideoPresenter Interface http://msdn.microsoft.com/en-us/library/ms700214(v=VS.85).aspx
   virtual HRESULT STDMETHODCALLTYPE GetCurrentMediaType(IMFVideoMediaType **ppMediaType);
@@ -112,9 +115,6 @@ public:
   virtual ULONG STDMETHODCALLTYPE AddRef();
   virtual ULONG STDMETHODCALLTYPE Release();
 
-  EVRCustomPresenter(IEVRCallback* callback, IDirect3DDevice9Ex* d3DDevice, HWND hwnd, HRESULT& hr);
-  virtual ~EVRCustomPresenter();
-
 protected:
   // The "active" state is started or paused.
   inline BOOL IsActive() const
@@ -142,15 +142,15 @@ protected:
   }
 
   // Mixer operations
-  HRESULT EVRCustomPresenter::ConfigureMixer(IMFTransform *pMixer);
-  HRESULT EVRCustomPresenter::SetMixerSourceRect(IMFTransform *pMixer, const MFVideoNormalizedRect& nrcSource);
+  HRESULT ConfigureMixer(IMFTransform *pMixer);
+  HRESULT SetMixerSourceRect(IMFTransform *pMixer, const MFVideoNormalizedRect& nrcSource);
 
   // Helpers
-  void    EVRCustomPresenter::NotifyEvent(long EventCode, LONG_PTR Param1, LONG_PTR Param2);
-  float   EVRCustomPresenter::GetMaxRate(BOOL bThin);
-  BOOL    EVRCustomPresenter::AreMediaTypesEqual(IMFMediaType *pType1, IMFMediaType *pType2);
-  HRESULT EVRCustomPresenter::ValidateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height);
-  RECT    EVRCustomPresenter::CorrectAspectRatio(const RECT& src, const MFRatio& srcPAR, const MFRatio& destPAR);
+  void    NotifyEvent(long EventCode, LONG_PTR Param1, LONG_PTR Param2);
+  float   GetMaxRate(BOOL bThin);
+  BOOL    AreMediaTypesEqual(IMFMediaType *pType1, IMFMediaType *pType2);
+  HRESULT ValidateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height);
+  RECT    CorrectAspectRatio(const RECT& src, const MFRatio& srcPAR, const MFRatio& destPAR);
 
   // Formats
   HRESULT CreateOptimalVideoType(IMFMediaType* pProposed, IMFMediaType **ppOptimal);
@@ -159,19 +159,19 @@ protected:
   HRESULT IsMediaTypeSupported(IMFMediaType *pMediaType);
 
   // Message Handlers
-  HRESULT EVRCustomPresenter::Flush();
-  HRESULT EVRCustomPresenter::BeginStreaming();
-  HRESULT EVRCustomPresenter::EndStreaming();
-  HRESULT EVRCustomPresenter::ProcessInputNotify();
-  HRESULT EVRCustomPresenter::CheckEndOfStream();
-  HRESULT EVRCustomPresenter::RenegotiateMediaType();
+  HRESULT Flush();
+  HRESULT BeginStreaming();
+  HRESULT EndStreaming();
+  HRESULT ProcessInputNotify();
+  HRESULT CheckEndOfStream();
+  HRESULT RenegotiateMediaType();
 
   // Frame Stepping
-  HRESULT EVRCustomPresenter::PrepareFrameStep(DWORD cSteps);
-  HRESULT EVRCustomPresenter::StartFrameStep();
-  HRESULT EVRCustomPresenter::CompleteFrameStep(IMFSample *pSample);
-  HRESULT EVRCustomPresenter::CancelFrameStep();
-  HRESULT EVRCustomPresenter::DeliverFrameStepSample(IMFSample *pSample);
+  HRESULT PrepareFrameStep(DWORD cSteps);
+  HRESULT StartFrameStep();
+  HRESULT CompleteFrameStep(IMFSample *pSample);
+  HRESULT CancelFrameStep();
+  HRESULT DeliverFrameStepSample(IMFSample *pSample);
 
   // Sample Management
   void    ProcessOutputLoop();   
@@ -181,7 +181,7 @@ protected:
   void    ReleaseResources();
   HRESULT SetDesiredSampleTime(IMFSample *pSample, const LONGLONG& hnsSampleTime, const LONGLONG& hnsDuration);
   HRESULT ClearDesiredSampleTime(IMFSample *pSample);
-  BOOL    EVRCustomPresenter::IsSampleTimePassed(IMFClock *pClock, IMFSample *pSample);
+  BOOL    IsSampleTimePassed(IMFClock *pClock, IMFSample *pSample);
   HRESULT OnSampleFree(IMFAsyncResult *pResult);
 
   // Callback
