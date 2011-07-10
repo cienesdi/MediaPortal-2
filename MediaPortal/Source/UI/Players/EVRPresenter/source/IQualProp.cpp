@@ -25,13 +25,11 @@ HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_AvgFrameRate(int *piAvgFrameRa
   return E_NOTIMPL;
 }
 
-
 // Retrieves the average time difference between when a frame was due for rendering and when rendering actually began (this is returned as a value in milliseconds).
 HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_AvgSyncOffset(int *piAvg)
 {
   return E_NOTIMPL;
 }
-
 
 // Retrieves the average time difference between when a frame was due for rendering and when rendering actually began (this is returned as a standard deviation).
 HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_DevSyncOffset(int *piDev)
@@ -42,16 +40,16 @@ HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_DevSyncOffset(int *piDev)
 // Retrieves the number of frames drawn since streaming started.
 HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_FramesDrawn(int *pcFramesDrawn)
 {
-  return E_NOTIMPL;
+  *pcFramesDrawn = m_scheduler.GetFramesDrawn();
+  return S_OK;
 }
-
 
 // Retrieves the number of frames dropped by the renderer.
 HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_FramesDroppedInRenderer(int *pcFrames)
 {
-  return 0;
+  *pcFrames = m_scheduler.GetFramesDropped();
+  return S_OK;
 }
-
 
 // Gets the jitter (variation in time) between successive frames delivered to the video renderer
 HRESULT STDMETHODCALLTYPE EVRCustomPresenter::get_Jitter(int *piJitter)

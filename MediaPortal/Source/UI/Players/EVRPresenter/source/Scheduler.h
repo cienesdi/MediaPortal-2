@@ -52,6 +52,8 @@ public:
     return (LONG)(time / (ONE_SECOND / ONE_MSEC));
   }
 
+  int GetFramesDrawn();
+  int GetFramesDropped();
 private: 
   // non-static version of SchedulerThreadProc.
   DWORD SchedulerThreadProcPrivate();
@@ -72,6 +74,10 @@ private:
   MFTIME        m_PerFrameInterval;   // Duration of each frame.
   LONGLONG      m_PerFrame_1_4th;     // 1/4th of the frame duration.
   MFTIME        m_LastSampleTime;     // Most recent sample time.
+
+  // Rendering statistics
+  int           m_framesDrawn;          // Total number of frames drawn
+  int           m_framesDropped;        // Total number of frames dropped
 };
 
 

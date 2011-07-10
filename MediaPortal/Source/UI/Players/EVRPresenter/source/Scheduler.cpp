@@ -44,7 +44,10 @@ Scheduler::Scheduler() :
   m_LastSampleTime(0), 
   m_PerFrameInterval(0), 
   m_PerFrame_1_4th(0)
-{
+{  
+  // Init statistic counters
+  m_framesDrawn = 0;
+  m_framesDropped = 0;
 }
 
 
@@ -133,6 +136,8 @@ HRESULT Scheduler::StartScheduler(IMFClock *pClock)
       return hr;
     }
   }
+  // Set the scheduler to highest priority
+  SetThreadPriority(m_hSchedulerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
   HANDLE hObjects[] = { m_hThreadReadyEvent, m_hSchedulerThread };
   DWORD dwWait = 0;
@@ -247,6 +252,7 @@ HRESULT Scheduler::ScheduleSample(IMFSample *pSample, BOOL bPresentNow)
 
   if (bPresentNow || (m_pClock == NULL))
   {
+    m_framesDrawn++;
     // Present the sample immediately.
     m_pCB->PresentSample(pSample, 0);
   }
@@ -315,6 +321,7 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
   MFTIME   hnsSystemTime = 0;
 
   BOOL bPresentNow = TRUE;
+  BOOL bDiscardFrame = FALSE;
   LONG lNextSleep = 0;
 
   IMFSample *pSample;
@@ -344,12 +351,20 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
         hnsDelta = -hnsDelta;
       }
 
+      bDiscardFrame = FALSE;
+
       if (hnsDelta < 0)
       {
-        // This sample is late.
-        bPresentNow = TRUE;
+          // This sample is too late, discard it
+          m_framesDropped++;
+          bDiscardFrame = TRUE;
       }
-      else if (hnsDelta > m_PerFrame_1_4th)
+      else if (hnsDelta <= m_PerFrame_1_4th)
+      {
+          // This sample is at a time that is less than 1/4th of the frame time, so present it now
+          bPresentNow = TRUE;
+      }
+      else 
       {
         // This sample is still too early. Go to sleep.
         lNextSleep = MFTimeToMsec(hnsDelta - m_PerFrame_1_4th);
@@ -366,11 +381,12 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
 
   if (bPresentNow)
   {
+    m_framesDrawn++;
     hr = m_pCB->PresentSample(pSample, hnsPresentationTime);
   }
-  else
+  else if (!bDiscardFrame)
   {
-    // The sample is not ready yet. Return it to the queue.
+    // The sample is not ready yet. Return it to the queue if the frame should not be discarded.
     hr = m_ScheduledSamples.PutBack(pSample);
   }
 
@@ -380,6 +396,19 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
   return true;
 }
 
+// IQualProp related methods
+
+// Retrieves the number of frames drawn since streaming started.
+int Scheduler::GetFramesDrawn()
+{
+  return m_framesDrawn;
+}
+
+// Retrieves the number of frames dropped by the renderer.
+int Scheduler::GetFramesDropped()
+{
+  return m_framesDropped;
+}
 
 // ThreadProc for the scheduler thread.
 DWORD WINAPI Scheduler::SchedulerThreadProc(LPVOID lpParameter)
