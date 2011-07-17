@@ -270,6 +270,14 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     }
 
     /// <summary>
+    /// Gets an object to sync access to graphics device.
+    /// </summary>
+    public static object SyncObj
+    {
+      get { return _setup; }
+    }
+
+    /// <summary>
     /// Sets the directx render states and project matrices.
     /// </summary>
     public static void SetRenderState()
