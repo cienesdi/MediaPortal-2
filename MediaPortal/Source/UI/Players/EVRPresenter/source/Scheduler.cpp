@@ -319,6 +319,9 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
   LONGLONG hnsPresentationTime = 0;
   LONGLONG hnsTimeNow = 0;
   MFTIME   hnsSystemTime = 0;
+  
+  LONGLONG hnsSampleDuration = 0;
+  LONGLONG hnsSampleDuration_1_4th = 0;
 
   BOOL bPresentNow = TRUE;
   BOOL bDiscardFrame = FALSE;
@@ -332,6 +335,12 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
 
   if (m_pClock)
   {
+    // Query the real frame duration from sample, framerates are sometimes not correctly detected on playback start
+    hr = pSample->GetSampleDuration(&hnsSampleDuration);
+    
+    // Default to pre-calculated time
+    hnsSampleDuration_1_4th = FAILED(hr) ? m_PerFrame_1_4th : hnsSampleDuration / 4; // TEST longer frame drawing times 4;
+
     // Get the sample's time stamp. It is valid for a sample to
     // have no time stamp.
     hr = pSample->GetSampleTime(&hnsPresentationTime);
@@ -355,19 +364,18 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
 
       if (hnsDelta < 0)
       {
-          // This sample is too late, discard it
-          m_framesDropped++;
-          bDiscardFrame = TRUE;
+        // This sample is too late, discard it
+        bDiscardFrame = TRUE;
       }
-      else if (hnsDelta <= m_PerFrame_1_4th)
+      else if (hnsDelta <= hnsSampleDuration_1_4th)
       {
-          // This sample is at a time that is less than 1/4th of the frame time, so present it now
-          bPresentNow = TRUE;
+        // This sample is at a time that is less than 1/4th of the frame time, so present it now
+        bPresentNow = TRUE;
       }
       else 
       {
         // This sample is still too early. Go to sleep.
-        lNextSleep = MFTimeToMsec(hnsDelta - m_PerFrame_1_4th);
+        lNextSleep = MFTimeToMsec(hnsDelta - hnsSampleDuration_1_4th);
 
         // Adjust the sleep time for the clock rate. (The presentation clock runs
         // at m_fRate, but sleeping uses the system clock.)
@@ -381,7 +389,7 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
 
   if (bPresentNow)
   {
-    m_framesDrawn++;
+    m_framesDrawn++;    
     hr = m_pCB->PresentSample(pSample, hnsPresentationTime);
   }
   else if (!bDiscardFrame)
@@ -389,6 +397,8 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
     // The sample is not ready yet. Return it to the queue if the frame should not be discarded.
     hr = m_ScheduledSamples.PutBack(pSample);
   }
+  else
+    m_framesDropped++;
 
   *plNextSleep = lNextSleep;
 
