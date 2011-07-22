@@ -33,9 +33,9 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using MediaPortal.Core;
+using MediaPortal.Core.Logging;
 using MediaPortal.UI.Players.Video.Tools;
 using MediaPortal.UI.Presentation.Geometries;
-using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.SkinEngine.DirectX;
 using SlimDX.Direct3D9;
 
@@ -56,9 +56,10 @@ namespace MediaPortal.UI.Players.Video
     /// <param name="arx">Aspect Ratio X.</param>
     /// <param name="ary">Aspect Ratio Y.</param>
     /// <param name="dwTexture">Address of the DirectX surface.</param>
+    /// <param name="hnsPresentationTime">The sample's target present timestamp</param>
     /// <returns><c>0</c>, if the method succeeded, <c>!= 0</c> else.</returns>
     [PreserveSig]
-    int PresentSurface(Int16 cx, Int16 cy, Int16 arx, Int16 ary, uint dwTexture);
+    int PresentSurface(Int16 cx, Int16 cy, Int16 arx, Int16 ary, uint dwTexture, UInt64 hnsPresentationTime);
   }
 
   public delegate void RenderDlgt();
@@ -76,10 +77,9 @@ namespace MediaPortal.UI.Players.Video
     private Size _aspectRatio = Size.Empty;
     private readonly RenderDlgt _renderDlgt;
     private Texture _texture = null;
-    private Surface _surface = null;
     private SizeF _surfaceMaxUV = Size.Empty;
     private uint _lastTexturePointer = 0;
-
+    private UInt64 _hnsPresentationTime;
 
     #endregion
 
@@ -167,7 +167,6 @@ namespace MediaPortal.UI.Players.Video
 
     private void FreeTexture()
     {
-      FilterGraphTools.TryDispose(ref _surface);
       FilterGraphTools.TryDispose(ref _texture);
     }
 
@@ -178,18 +177,25 @@ namespace MediaPortal.UI.Players.Video
 
     #region IEVRPresentCallback implementation
 
-    public int PresentSurface(short cx, short cy, short arx, short ary, uint dwTexture)
+    public int PresentSurface(short cx, short cy, short arx, short ary, uint dwTexture, UInt64 hnsPresentationTime)
     {
       lock (_lock)
         if (dwTexture != 0 && cx != 0 && cy != 0)
         {
-          if (cx != _originalVideoSize.Width || cy != _originalVideoSize.Height)
-          {
-            FreeTexture();
-            _originalVideoSize = new Size(cx, cy);
-          }
+          if (_hnsPresentationTime > hnsPresentationTime)
+            ServiceRegistration.Get<ILogger>().Error("Wrong Frame arrived: last time {0}; frame time {1}", _hnsPresentationTime, hnsPresentationTime);
+
+          // If a sample without time arrived, skip the presenting process here
+          if (hnsPresentationTime == 0)
+            return 0;
+
+          _hnsPresentationTime = hnsPresentationTime;
+
+          _originalVideoSize = new Size(cx, cy);
+
           Rectangle cropRect = _cropSettings == null ? new Rectangle(Point.Empty, _originalVideoSize) :
               _cropSettings.CropRect(_originalVideoSize);
+
           _croppedVideoSize = cropRect.Size;
 
           _aspectRatio.Width = arx;
@@ -198,10 +204,10 @@ namespace MediaPortal.UI.Players.Video
           if (_texture == null || _lastTexturePointer != dwTexture)
           {
             // TEST: block rendering thread while we are exchanging the texture
-            lock (GraphicsDevice.SyncObj)
+            //lock (GraphicsDevice.SyncObj)
             {
               // Dispose old texture
-              FilterGraphTools.TryDispose(ref _texture);
+              FreeTexture();
 
               // Remember pointer, if same is passed twice, we can reuse the texture (REPAINT calls)
               _lastTexturePointer = dwTexture;
@@ -210,7 +216,7 @@ namespace MediaPortal.UI.Players.Video
               // maybe it should be done directly during rendering process
               _texture = Texture.FromPointer(new IntPtr(dwTexture));
               SurfaceDescription desc = _texture.GetLevelDescription(0);
-              _surfaceMaxUV = new SizeF(_croppedVideoSize.Width/(float) desc.Width, _croppedVideoSize.Height/(float) desc.Height);
+              _surfaceMaxUV = new SizeF(_croppedVideoSize.Width / (float) desc.Width, _croppedVideoSize.Height / (float) desc.Height);
             }
           }
         }

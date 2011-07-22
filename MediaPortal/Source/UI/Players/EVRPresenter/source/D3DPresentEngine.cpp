@@ -301,6 +301,9 @@ HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget)
       hr = MFGetService(pBuffer, MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (void**)&pSurface);
       pSurface->GetContainer(IID_IDirect3DTexture9, (void**)&pTexture);
       m_pTextureRepaint = pTexture;
+      
+      // Store this pointer in case we need to repaint the texture.
+      CopyComPointer(m_pTextureRepaint, pTexture);
     }
     if (hr == D3DERR_DEVICELOST || hr == D3DERR_DEVICENOTRESET || hr == D3DERR_DEVICEHUNG)
     {
@@ -317,11 +320,12 @@ HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget)
     pTexture = m_pTextureRepaint;
     pTexture->AddRef();
   }
-
-  hr = m_EVRCallback->PresentSurface(m_Width, m_Height, m_ArX, m_ArY, (DWORD)(IDirect3DTexture9*) pTexture);
-
-  SAFE_RELEASE(pSurface);
+  if (pTexture)
+  {
+    hr = m_EVRCallback->PresentSurface(m_Width, m_Height, m_ArX, m_ArY, (DWORD)(IDirect3DTexture9*) pTexture, llTarget);
+  }
   SAFE_RELEASE(pTexture);
+  SAFE_RELEASE(pSurface);
   SAFE_RELEASE(pBuffer);
 
   return hr;
