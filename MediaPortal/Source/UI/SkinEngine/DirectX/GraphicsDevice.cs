@@ -37,6 +37,7 @@ using System.Threading;
 using System.Windows.Forms;
 using MediaPortal.Core;
 using MediaPortal.Core.Logging;
+using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.SkinEngine.ContentManagement;
 using MediaPortal.UI.SkinEngine.Players;
 using MediaPortal.UI.SkinEngine.ScreenManagement;
@@ -178,7 +179,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       if (frameRate == 0)
         frameRate = 1;
       _targetFrameRate = frameRate;
-      _msPerFrame = (int) (1000/_targetFrameRate);
+      _msPerFrame = (int) (1000 / _targetFrameRate);
     }
 
     private static void ResetDxDevice()
@@ -266,7 +267,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
 
     public static DateTime LastRenderTime
     {
-       get { return _frameRenderingStartTime; }
+      get { return _frameRenderingStartTime; }
     }
 
     /// <summary>
@@ -331,7 +332,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       Matrix translate = Matrix.Translation(-w, -h, 0.0f);
       TransformView = Matrix.Multiply(translate, flipY);
 
-      TransformProjection = Matrix.OrthoOffCenterLH(-w, w, -h, h, 0.0f, 2.0f); 
+      TransformProjection = Matrix.OrthoOffCenterLH(-w, w, -h, h, 0.0f, 2.0f);
       FinalTransform = TransformView * TransformProjection;
     }
 
@@ -352,35 +353,38 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       _frameRenderingStartTime = DateTime.Now;
       lock (_setup)
       {
-        try
-        {
-          _device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
-          _device.BeginScene();
-
-          _screenManager.Render();
-
-          _device.EndScene();
-          _device.PresentEx(Present.ForceImmediate);
-
-          _fpsCounter += 1;
-          TimeSpan ts = DateTime.Now - _fpsTimer;
-          if (ts.TotalSeconds >= 1.0f)
+        //if (!doWaitForNextFame)
+        //  DrawVideoTexture();
+        //else
+          try
           {
-            float secs = (float) ts.TotalSeconds;
-            SkinContext.FPS = _fpsCounter / secs;
+            _device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
+            _device.BeginScene();
+
+            _screenManager.Render();
+
+            _device.EndScene();
+            _device.PresentEx(Present.None);
+
+            _fpsCounter += 1;
+            TimeSpan ts = DateTime.Now - _fpsTimer;
+            if (ts.TotalSeconds >= 1.0f)
+            {
+              float secs = (float) ts.TotalSeconds;
+              SkinContext.FPS = _fpsCounter / secs;
 #if PROFILE_FRAMERATE
             ServiceRegistration.Get<ILogger>().Debug("RenderLoop: {0} frames per second, {1} total frames until last measurement", SkinContext.FPS, _fpsCounter);
 #endif
-            _fpsCounter = 0;
-            _fpsTimer = DateTime.Now;
+              _fpsCounter = 0;
+              _fpsTimer = DateTime.Now;
+            }
           }
-        }
-        catch (Direct3D9Exception e)
-        {
-          ServiceRegistration.Get<ILogger>().Warn("GraphicsDevice: Lost DirectX device", e);
-          _deviceLost = true;
-          return true;
-        }
+          catch (Direct3D9Exception e)
+          {
+            ServiceRegistration.Get<ILogger>().Warn("GraphicsDevice: Lost DirectX device", e);
+            _deviceLost = true;
+            return true;
+          }
         ServiceRegistration.Get<ContentManager>().Clean();
       }
       return false;
@@ -460,6 +464,42 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     public static int DesktopWidth
     {
       get { return _setup.DesktopWidth; }
+    }
+
+    //-------------------------- Render tests for Video only
+
+    private static void DrawVideoTexture()
+    {
+      IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>(false);
+      if (playerManager == null)
+        return;
+
+      ISlimDXVideoPlayer player = playerManager[0] as ISlimDXVideoPlayer;
+      if (player == null || player.Texture == null)
+        return;
+      Device.SetSamplerState(0, SamplerState.MinFilter, TextureFilter.Linear);
+      Device.SetSamplerState(0, SamplerState.MagFilter, TextureFilter.Linear);
+      Device.SetSamplerState(0, SamplerState.MipFilter, TextureFilter.Linear);
+      Device.SetSamplerState(0, SamplerState.AddressU, TextureAddress.Clamp);
+      Device.SetSamplerState(0, SamplerState.AddressV, TextureAddress.Clamp);
+
+      Texture texture = player.Texture;
+      SurfaceDescription desc = texture.GetLevelDescription(0);
+      Vector2 halfPosition = new Vector2((float) desc.Width / 2, (float) desc.Height / 2);
+
+      Matrix scaling = Matrix.Scaling((float) Width / desc.Width, (float) Height / desc.Height, 1.0f);
+
+      using (Sprite sprite = new Sprite(Device))
+      {
+        Device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
+        Device.BeginScene();
+        sprite.Begin(SpriteFlags.None);
+        sprite.Transform = scaling;
+        sprite.Draw(texture, new Vector3(halfPosition, 0), new Vector3(halfPosition, 0), Color.White);
+        sprite.End();
+        Device.EndScene();
+        Device.PresentEx(Present.None);
+      }
     }
   }
 }
