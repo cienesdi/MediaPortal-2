@@ -64,6 +64,7 @@ namespace MediaPortal.Core.Threading
     #region Methods to control the threadpool
 
     void Stop();
+    void Shutdown();
 
     #endregion
 
