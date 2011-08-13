@@ -64,10 +64,10 @@
         HelpText="[Settings.Appearance.System.CellPhoneInputStyle.Help]"
         ClassName="MediaPortal.UI.SkinEngine.Settings.Configuration.Appearance.CellPhoneInputStyle"/>
     <ConfigSetting
-        Id="MultiSampleType"
-        Text="[Settings.Appearance.System.MultiSampleType]"
-        HelpText="[Settings.Appearance.System.MultiSampleType.Help]"
-        ClassName="MediaPortal.UI.SkinEngine.Settings.Configuration.Appearance.MultiSampleType"/>
+        Id="Antialiasing"
+        Text="[Settings.Appearance.System.Antialiasing]"
+        HelpText="[Settings.Appearance.System.Antialiasing.Help]"
+        ClassName="MediaPortal.UI.SkinEngine.Settings.Configuration.Appearance.Antialiasing"/>
   </Register>
 
   <!-- Contents of '/Appearance/Skin' section -->

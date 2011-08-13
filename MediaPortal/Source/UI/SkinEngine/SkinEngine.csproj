@@ -230,7 +230,7 @@
     <Compile Include="ScreenManagement\ScreenManagerMessaging.cs" />
     <Compile Include="Controls\Visuals\VirtualKeyboardControl.cs" />
     <Compile Include="ScreenManagement\SuperLayerManager.cs" />
-    <Compile Include="Settings\Configuration\Appearance\MultiSampleType.cs" />
+    <Compile Include="Settings\Configuration\Appearance\Antialiasing.cs" />
     <Compile Include="Settings\Configuration\Appearance\Skin\SkinConfigurationController.cs" />
     <Compile Include="Settings\Configuration\Appearance\Skin\ThemeConfigurationController.cs" />
     <Compile Include="Settings\Configuration\Appearance\CellPhoneInputStyle.cs" />
@@ -459,9 +459,7 @@
   <ItemGroup>
     <EmbeddedResource Include="GUI\MP2.ico" />
     <Content Include="Language\strings_en.xml" />
-    <Content Include="plugin.xml">
-      <SubType>Designer</SubType>
-    </Content>
+    <Content Include="plugin.xml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="GUI\MainForm.resx">
