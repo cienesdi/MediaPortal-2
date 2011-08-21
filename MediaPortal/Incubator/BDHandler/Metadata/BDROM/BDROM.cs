@@ -158,7 +158,7 @@ namespace BDInfo
                 FileInfo[] files = DirectoryPLAYLIST.GetFiles("*.mpls");
                 if (files.Length == 0)
                 {
-                    files = DirectoryPLAYLIST.GetFiles("*.MPLS");
+                    files = DirectoryPLAYLIST.GetFiles("*.MPL");
                 }
                 foreach (FileInfo file in files)
                 {
@@ -172,7 +172,7 @@ namespace BDInfo
                 FileInfo[] files = DirectorySTREAM.GetFiles("*.m2ts");
                 if (files.Length == 0)
                 {
-                    files = DirectoryPLAYLIST.GetFiles("*.M2TS");
+                    files = DirectoryPLAYLIST.GetFiles("*.MTS");
                 }
                 foreach (FileInfo file in files)
                 {
@@ -186,7 +186,7 @@ namespace BDInfo
                 FileInfo[] files = DirectoryCLIPINF.GetFiles("*.clpi");
                 if (files.Length == 0)
                 {
-                    files = DirectoryPLAYLIST.GetFiles("*.CLPI");
+                    files = DirectoryPLAYLIST.GetFiles("*.CLP");
                 }
                 foreach (FileInfo file in files)
                 {
