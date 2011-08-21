@@ -59,9 +59,9 @@ namespace MediaPortal.UI.Players.Video
 
     public IPlayer GetPlayer(IResourceLocator locator, string mimeType)
     {
-      if (Enabled && mimeType == "video/bluray")
+      if (Enabled && (mimeType == "video/bluray" || mimeType == "video/avchd"))
       {
-        BDPlayer player = new BDPlayer();
+        BDPlayer player = new BDPlayer(mimeType == "video/avchd");
         try
         {
           player.SetMediaItemLocator(locator);

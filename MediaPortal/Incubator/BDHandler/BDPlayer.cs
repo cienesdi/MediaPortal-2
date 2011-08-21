@@ -45,7 +45,7 @@ namespace MediaPortal.UI.Players.Video
   public class BDPlayer : VideoPlayer, IDVDPlayer
   {
     #region Consts and delegates
-       
+
     // "MPC - Mpeg Source (Gabest)
     public static CodecInfo MpcMpegSourceFilterInfo = new CodecInfo()
                                                         {
@@ -55,6 +55,9 @@ namespace MediaPortal.UI.Players.Video
 
     public const double MINIMAL_FULL_FEATURE_LENGTH = 3000;
     public const string RES_PLAYBACK_CHAPTER = "[Playback.Chapter]";
+
+    protected const string BLURAY_BDMV_PATH = @"BDMV";
+    protected const string AVCHD_BDMV_PATH = @"PRIVATE\AVCHD\BDMV";
 
     /// <summary>
     /// Delegate for starting a BDInfo thread.
@@ -69,6 +72,7 @@ namespace MediaPortal.UI.Players.Video
 
     private double[] _chapterTimestamps;
     private string[] _chapterNames;
+    private readonly bool _isAVCHD;
 
     #endregion
 
@@ -77,15 +81,16 @@ namespace MediaPortal.UI.Players.Video
     /// <summary>
     /// Constructs a BDPlayer player object.
     /// </summary>
-    public BDPlayer()
+    public BDPlayer(bool isAVCHD)
     {
-      PlayerTitle = "BDPlayer"; // for logging
+      _isAVCHD = isAVCHD;
+      PlayerTitle = string.Format("BDMVPlayer ({0})", _isAVCHD ? "AVCHD" : "BluRay"); // for logging
       _requiredCapabilities = CodecHandler.CodecCapabilities.VideoH264 | CodecHandler.CodecCapabilities.AudioMPEG;
     }
 
     #endregion
 
-    #region VideoPlayer overrides 
+    #region VideoPlayer overrides
 
     protected override void CreateGraphBuilder()
     {
@@ -124,12 +129,13 @@ namespace MediaPortal.UI.Players.Video
     protected override void AddFileSource()
     {
       string strFile = _resourceAccessor.LocalFileSystemPath;
-      
+
       // Render the file
-      strFile = Path.Combine(strFile.ToLower(), @"BDMV\index.bdmv");
+      //strFile = Path.Combine(strFile.ToLower(), _isAVCHD ? AVCHD_BDMV_PATH + "\\INDEX.BDM" : BLURAY_BDMV_PATH + "\\index.bdmv");
 
       // only continue with playback if a feature was selected or the extension was m2ts.
-      if (DoFeatureSelection(ref strFile))
+      strFile = Path.Combine(strFile.ToLower(), _isAVCHD ? AVCHD_BDMV_PATH + "\\PLAYLIST\\00000.MPL" : BLURAY_BDMV_PATH + "\\index.bdmv");
+      //if (DoFeatureSelection(ref strFile))
       {
         // load the source filter         
         if (TryAdd(MpcMpegSourceFilterInfo))
@@ -239,7 +245,7 @@ namespace MediaPortal.UI.Players.Video
         List<TSPlaylistFile> allPlayLists = bluray.PlaylistFiles.Values.Where(p => p.IsValid).OrderByDescending(p => p.TotalLength).Distinct().ToList();
 
         // this will be the title of the dialog, we strip the dialog of weird characters that might wreck the font engine.
-        string heading = (bluray.Title != string.Empty) ? Regex.Replace(bluray.Title, @"[^\w\s\*\%\$\+\,\.\-\:\!\?\(\)]", "").Trim() : "Bluray: Select Feature";
+        string heading = !String.IsNullOrEmpty(bluray.Title) ? Regex.Replace(bluray.Title, @"[^\w\s\*\%\$\+\,\.\-\:\!\?\(\)]", "").Trim() : "Bluray: Select Feature";
 
         //GUIWaitCursor.Hide();
 
