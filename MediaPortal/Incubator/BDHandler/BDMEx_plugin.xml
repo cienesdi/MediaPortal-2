@@ -14,8 +14,7 @@
 
   <!-- The Metadata extractor. -->
   <Register Location="/Media/MetadataExtractors">
-    <Instance
-        Id="BluRayMetadataExtractor"
-        ClassName="MediaPortal.Media.MetadataExtractors.BluRayMetadataExtractor"/>
+    <Instance Id="AVCHDMetadataExtractor" ClassName="MediaPortal.Media.MetadataExtractors.AVCHDMetadataExtractor"/>
+    <Instance Id="BluRayMetadataExtractor" ClassName="MediaPortal.Media.MetadataExtractors.BluRayMetadataExtractor"/>
   </Register>
 </Plugin>

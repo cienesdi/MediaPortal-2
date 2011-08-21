@@ -36,14 +36,14 @@ namespace MediaPortal.Media.MetadataExtractors
   /// <summary>
   /// MediaPortal 2 metadata extractor implementation for BluRay discs.
   /// </summary>
-  public class BluRayMetadataExtractor : IMetadataExtractor
+  public class AVCHDMetadataExtractor : IMetadataExtractor
   {
     #region Public constants
 
     /// <summary>
     /// GUID string for the BluRayMetadataExtractor.
     /// </summary>
-    public const string METADATAEXTRACTOR_ID_STR = "E23918BB-297F-463b-8AEB-2BDCE9998028";
+    public const string METADATAEXTRACTOR_ID_STR = "FDEFA4A2-B4C1-423E-A0C8-0259362F0E97";
 
     /// <summary>
     /// BluRayMetadataExtractor GUID.
@@ -57,19 +57,20 @@ namespace MediaPortal.Media.MetadataExtractors
     protected static IList<string> SHARE_CATEGORIES = new List<string>();
 
     protected MetadataExtractorMetadata _metadata;
+    protected string BDMV_PATH = @"PRIVATE\AVCHD\BDMV";
 
     #endregion
 
     #region Ctor
 
-    static BluRayMetadataExtractor()
+    static AVCHDMetadataExtractor()
     {
       SHARE_CATEGORIES.Add(DefaultMediaCategory.Video.ToString());
     }
 
-    public BluRayMetadataExtractor()
+    public AVCHDMetadataExtractor()
     {
-      _metadata = new MetadataExtractorMetadata(METADATAEXTRACTOR_ID, "BluRay metadata extractor", true, 
+      _metadata = new MetadataExtractorMetadata(METADATAEXTRACTOR_ID, "AVCHD metadata extractor", true, 
           SHARE_CATEGORIES, new[]
               {
                 MediaAspect.Metadata,
@@ -91,10 +92,10 @@ namespace MediaPortal.Media.MetadataExtractors
       try
       {
         ILocalFsResourceAccessor fsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(mediaItemAccessor);
-        if (fsra != null && fsra.IsDirectory && fsra.Exists("BDMV"))
+        if (fsra != null && fsra.IsDirectory && fsra.Exists(BDMV_PATH))
         {
-          IFileSystemResourceAccessor fsraBDMV = fsra.GetResource("BDMV") as IFileSystemResourceAccessor;
-          if (fsraBDMV != null && fsraBDMV.Exists("index.bdmv"))
+          IFileSystemResourceAccessor fsraBDMV = fsra.GetResource(BDMV_PATH) as IFileSystemResourceAccessor;
+          if (fsraBDMV != null && fsraBDMV.Exists("INDEX.BDM"))
           {
             // BluRay
             MediaItemAspect mediaAspect;
@@ -104,7 +105,7 @@ namespace MediaPortal.Media.MetadataExtractors
             if (!extractedAspectData.TryGetValue(VideoAspect.ASPECT_ID, out videoAspect))
               extractedAspectData[VideoAspect.ASPECT_ID] = new MediaItemAspect(VideoAspect.Metadata);
 
-            mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, "video/bluray"); // BluRay disc
+            mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, "video/avchd"); // AVCHD disc
 
             using (IResourceAccessor resourceAccessor = fsraBDMV.LocalResourcePath.CreateLocalResourceAccessor())
             {
@@ -122,7 +123,7 @@ namespace MediaPortal.Media.MetadataExtractors
         // Only log at the info level here - And simply return false. This makes the importer know that we
         // couldn't perform our task here
         if (mediaItemAccessor != null)
-          ServiceRegistration.Get<ILogger>().Info("BluRayMetadataExtractor: Exception reading source '{0}'", mediaItemAccessor.ResourcePathName);
+          ServiceRegistration.Get<ILogger>().Info("AVCHDMetadataExtractor: Exception reading source '{0}'", mediaItemAccessor.ResourcePathName);
         return false;
       }
     }
