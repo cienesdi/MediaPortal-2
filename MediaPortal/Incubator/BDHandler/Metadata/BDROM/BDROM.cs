@@ -70,6 +70,14 @@ namespace BDInfo
 
         public event OnPlaylistFileScanError PlaylistFileScanError;
 
+
+        public static string[] EXT_CLPI = new string[] { "clpi", "CLPI", "CPI" };
+        public static string[] EXT_BDMV = new string[] { "bdmv", "BDMV", "BDM" };
+        public static string[] EXT_M2TS = new string[] { "m2ts", "M2TS", "MTS" };
+        public static string[] EXT_MPLS = new string[] { "mpls", "MPLS", "MPL" };
+        public static string[] EXT_SSIF = new string[] { "ssif", "SSIF" };
+
+      
         public BDROM(
             string path)
         {
@@ -152,62 +160,36 @@ namespace BDInfo
             //
             // Initialize file lists.
             //
-
-            if (DirectoryPLAYLIST != null)
-            {
-                FileInfo[] files = DirectoryPLAYLIST.GetFiles("*.mpls");
-                if (files.Length == 0)
-                {
-                    files = DirectoryPLAYLIST.GetFiles("*.MPL");
-                }
+            FileInfo[] files;
+            if (GetFiles(DirectoryPLAYLIST, EXT_MPLS, out files))
                 foreach (FileInfo file in files)
-                {
-                    PlaylistFiles.Add(
-                        file.Name.ToUpper(), new TSPlaylistFile(this, file));
-                }
-            }
+                    PlaylistFiles.Add(file.Name.ToUpper(), new TSPlaylistFile(this, file));
 
-            if (DirectorySTREAM != null)
-            {
-                FileInfo[] files = DirectorySTREAM.GetFiles("*.m2ts");
-                if (files.Length == 0)
-                {
-                    files = DirectoryPLAYLIST.GetFiles("*.MTS");
-                }
-                foreach (FileInfo file in files)
-                {
-                    StreamFiles.Add(
-                        file.Name.ToUpper(), new TSStreamFile(file));
-                }
-            }
+            if (GetFiles(DirectorySTREAM, EXT_M2TS, out files))
+              foreach (FileInfo file in files)
+                StreamFiles.Add(file.Name.ToUpper(), new TSStreamFile(file));
 
-            if (DirectoryCLIPINF != null)
-            {
-                FileInfo[] files = DirectoryCLIPINF.GetFiles("*.clpi");
-                if (files.Length == 0)
-                {
-                    files = DirectoryPLAYLIST.GetFiles("*.CLP");
-                }
-                foreach (FileInfo file in files)
-                {
-                    StreamClipFiles.Add(
-                        file.Name.ToUpper(), new TSStreamClipFile(file));
-                }
-            }
+            if (GetFiles(DirectoryCLIPINF, EXT_CLPI, out files))
+              foreach (FileInfo file in files)
+                StreamClipFiles.Add(file.Name.ToUpper(), new TSStreamClipFile(file));
 
-            if (DirectorySSIF != null)
-            {
-                FileInfo[] files = DirectorySSIF.GetFiles("*.ssif");
-                if (files.Length == 0)
-                {
-                    files = DirectorySSIF.GetFiles("*.SSIF");
-                }
-                foreach (FileInfo file in files)
-                {
-                    InterleavedFiles.Add(
-                        file.Name.ToUpper(), new TSInterleavedFile(file));
-                }
-            }
+            if (GetFiles(DirectorySSIF, EXT_CLPI, out files))
+              foreach (FileInfo file in files)
+                InterleavedFiles.Add(file.Name.ToUpper(), new TSInterleavedFile(file));
+        }
+      
+        public bool GetFiles(DirectoryInfo directoryInfo, string[] validExtensions, out FileInfo[] fileInfos)
+        {
+          fileInfos = null;
+          if (directoryInfo == null || validExtensions == null)
+            return false;
+          foreach (string ext in validExtensions)
+          {
+            fileInfos = directoryInfo.GetFiles("*." + ext);
+            if (fileInfos.Length != 0)
+              return true;
+          }
+          return false;
         }
 
         public void Scan()
