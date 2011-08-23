@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Include
+    xmlns="www.team-mediaportal.com/2008/mpf/directx"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Source="screens\simple_dialog_menu.xaml"
+    >
+  <Include.Resources>
+    <Service x:Key="ScreenManager" InterfaceName="ScreenManager"/>
+
+    <!-- BDMVPlayerModel model -->
+    <Model x:Key="BDMVPlayerModel" Id="1644E7AE-BBD1-43E5-8898-61956FA58CAF"/>
+
+    <!-- Dialog title -->
+    <ResourceWrapper x:Key="Dialog_Header_Text" Resource="{Binding Source={StaticResource BDMVPlayerModel},Path=BDMVTitle}"/>
+
+    <ResourceWrapper x:Key="Menu_Items" Resource="{Binding Source={StaticResource BDMVPlayerModel},Path=BDMVFeatures}"/>
+
+    <!-- Command -->
+    <CommandStencil x:Key="Execute_Command_Stencil" Source="{StaticResource BDMVPlayerModel}" Path="SelectFeature"/>
+  </Include.Resources>
+</Include>

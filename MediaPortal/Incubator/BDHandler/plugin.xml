@@ -27,6 +27,14 @@
     <Resource Id="BDHandlerLanguage" Directory="Language" Type="Language"/>
   </Register>
 
+  <Register Location="/Models">
+    <Model Id="1644E7AE-BBD1-43E5-8898-61956FA58CAF" ClassName="MediaPortal.Plugins.BDHandler.Models.BDMVPlayerModel"/>
+  </Register>
+
+  <Register Location="/Resources/Skin">
+    <Resource Id="BDMVPlayerSkin" Directory="Skin" Type="Skin"/>
+  </Register>
+
   <!-- Root Sections -->
   <Register Location="/Configuration/Settings">
     <ConfigSection

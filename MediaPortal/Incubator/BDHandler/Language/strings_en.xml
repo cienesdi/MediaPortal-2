@@ -2,6 +2,9 @@
 <Language>
   <Section Name="Settings">
     <String Name="Players.Codecs.VideoCodecs.AVC" Text="AVC Video Codec"/>
-    <String Name="Players.Codecs.VideoCodecs.AVC.Help" Text="Set the codec used for AVC video (BluRay)"/>
+    <String Name="Players.Codecs.VideoCodecs.AVC.Help" Text="Set the codec used for AVC video (BluRay)"/>    
+  </Section>
+  <Section Name="BDMVPlayer">
+    <String Name="Dialogs.SelectFeature" Text="Select Feature" />    
   </Section>
 </Language>
