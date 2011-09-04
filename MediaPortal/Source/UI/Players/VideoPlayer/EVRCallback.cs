@@ -203,21 +203,17 @@ namespace MediaPortal.UI.Players.Video
 
           if (_texture == null || _lastTexturePointer != dwTexture)
           {
-            // TEST: block rendering thread while we are exchanging the texture
-            //lock (GraphicsDevice.SyncObj)
-            {
-              // Dispose old texture
-              FreeTexture();
+            // Dispose old texture
+            FreeTexture();
 
-              // Remember pointer, if same is passed twice, we can reuse the texture (REPAINT calls)
-              _lastTexturePointer = dwTexture;
+            // Remember pointer, if same is passed twice, we can reuse the texture (REPAINT calls)
+            _lastTexturePointer = dwTexture;
 
-              // FIXME: simply storing the complete texture does not apply cropping as it was done before inside StretchRectangle call
-              // maybe it should be done directly during rendering process
-              _texture = Texture.FromPointer(new IntPtr(dwTexture));
-              SurfaceDescription desc = _texture.GetLevelDescription(0);
-              _surfaceMaxUV = new SizeF(_croppedVideoSize.Width / (float) desc.Width, _croppedVideoSize.Height / (float) desc.Height);
-            }
+            // FIXME: simply storing the complete texture does not apply cropping as it was done before inside StretchRectangle call
+            // maybe it should be done directly during rendering process
+            _texture = Texture.FromPointer(new IntPtr(dwTexture));
+            SurfaceDescription desc = _texture.GetLevelDescription(0);
+            _surfaceMaxUV = new SizeF(_croppedVideoSize.Width / (float) desc.Width, _croppedVideoSize.Height / (float) desc.Height);
           }
         }
       VideoSizePresentDlgt vsp = VideoSizePresent;
