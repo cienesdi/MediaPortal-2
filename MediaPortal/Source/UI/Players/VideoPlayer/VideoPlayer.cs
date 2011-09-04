@@ -28,6 +28,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
 using System.Windows.Forms;
 using DirectShowLib;
 using MediaPortal.Core;
@@ -158,6 +159,7 @@ namespace MediaPortal.UI.Players.Video
     protected StreamInfoHandler _streamInfoAudio = null;
     protected StreamInfoHandler _streamInfoSubtitles = null;
     private readonly object _syncObj = new object();
+    private ThreadPriority _oldPriority;
 
     #endregion
 
@@ -338,6 +340,9 @@ namespace MediaPortal.UI.Players.Video
         AddFileSource();
 
         ServiceRegistration.Get<ILogger>().Debug("{0}: Run graph", PlayerTitle);
+
+        // Rember current priority and raise the thread to Highest
+        SetThreadPriority(false);
 
         //This needs to be done here before we check if the evr pins are connected
         //since this method gives players the chance to render the last bits of the graph
@@ -599,6 +604,21 @@ namespace MediaPortal.UI.Players.Video
 
     #region Graph shutdown
 
+    protected void SetThreadPriority(bool restore)
+    {
+      if (restore)
+      {
+        ServiceRegistration.Get<ILogger>().Debug("{0}: Restoring thread priority to {1}", PlayerTitle, _oldPriority);
+        Thread.CurrentThread.Priority = _oldPriority;
+      }
+      else
+      {
+        _oldPriority = Thread.CurrentThread.Priority;
+        ServiceRegistration.Get<ILogger>().Debug("{0}: Setting thread priority from {1} to {2}", PlayerTitle, _oldPriority, ThreadPriority.Highest);
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+      }
+    }
+
     /// <summary>
     /// Frees the audio/video codecs.
     /// </summary>
@@ -661,6 +681,8 @@ namespace MediaPortal.UI.Players.Video
           }
 
           FreeCodecs();
+        
+          SetThreadPriority(true);
         }
       }
       // Dispose resource locator and accessor
