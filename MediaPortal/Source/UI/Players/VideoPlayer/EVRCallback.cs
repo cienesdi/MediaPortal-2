@@ -32,11 +32,8 @@ or FITNESS FOR A PARTICULAR PURPOSE.
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using MediaPortal.Core;
-using MediaPortal.Core.Logging;
 using MediaPortal.UI.Players.Video.Tools;
 using MediaPortal.UI.Presentation.Geometries;
-using MediaPortal.UI.SkinEngine.DirectX;
 using SlimDX.Direct3D9;
 
 namespace MediaPortal.UI.Players.Video
@@ -56,10 +53,9 @@ namespace MediaPortal.UI.Players.Video
     /// <param name="arx">Aspect Ratio X.</param>
     /// <param name="ary">Aspect Ratio Y.</param>
     /// <param name="dwTexture">Address of the DirectX surface.</param>
-    /// <param name="hnsPresentationTime">The sample's target present timestamp</param>
     /// <returns><c>0</c>, if the method succeeded, <c>!= 0</c> else.</returns>
     [PreserveSig]
-    int PresentSurface(Int16 cx, Int16 cy, Int16 arx, Int16 ary, uint dwTexture, UInt64 hnsPresentationTime);
+    int PresentSurface(Int16 cx, Int16 cy, Int16 arx, Int16 ary, uint dwTexture);
   }
 
   public delegate void RenderDlgt();
@@ -79,7 +75,6 @@ namespace MediaPortal.UI.Players.Video
     private Texture _texture = null;
     private SizeF _surfaceMaxUV = Size.Empty;
     private uint _lastTexturePointer = 0;
-    private UInt64 _hnsPresentationTime;
 
     #endregion
 
@@ -177,20 +172,11 @@ namespace MediaPortal.UI.Players.Video
 
     #region IEVRPresentCallback implementation
 
-    public int PresentSurface(short cx, short cy, short arx, short ary, uint dwTexture, UInt64 hnsPresentationTime)
+    public int PresentSurface(short cx, short cy, short arx, short ary, uint dwTexture)
     {
       lock (_lock)
         if (dwTexture != 0 && cx != 0 && cy != 0)
         {
-          if (_hnsPresentationTime > hnsPresentationTime)
-            ServiceRegistration.Get<ILogger>().Error("Wrong Frame arrived: last time {0}; frame time {1}", _hnsPresentationTime, hnsPresentationTime);
-
-          // If a sample without time arrived, skip the presenting process here
-          if (hnsPresentationTime == 0)
-            return 0;
-
-          _hnsPresentationTime = hnsPresentationTime;
-
           _originalVideoSize = new Size(cx, cy);
 
           Rectangle cropRect = _cropSettings == null ? new Rectangle(Point.Empty, _originalVideoSize) :

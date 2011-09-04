@@ -37,7 +37,7 @@ public:
   void    ReleaseResources();
 
   HRESULT CheckDeviceState(DeviceState *pState);
-  HRESULT PresentSample(IMFSample* pSample, LONGLONG llTarget); 
+  HRESULT PresentSample(IMFSample* pSample, LONGLONG llTarget, float m_fRate); 
 
   UINT    RefreshRate() const { return m_DisplayMode.RefreshRate; }
 
@@ -57,6 +57,8 @@ protected:
   CritSec                     m_ObjectLock;           // Thread lock for the D3D device.
 
   IEVRCallback                *m_EVRCallback;         // Callback interface to MP2
+  
+  LONGLONG                    m_lastPresentTarget;
 
   // COM interfaces
   IDirect3D9Ex                *m_pD3D9;

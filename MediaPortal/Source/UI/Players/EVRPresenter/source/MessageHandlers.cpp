@@ -35,7 +35,7 @@ HRESULT EVRCustomPresenter::Flush()
   if (m_RenderState == RENDER_STATE_STOPPED)
   {
       // Repaint with black.
-      (void)m_pD3DPresentEngine->PresentSample(NULL, 0);
+    (void)m_pD3DPresentEngine->PresentSample(NULL, 0, m_fRate);
   }
 
   return S_OK; 

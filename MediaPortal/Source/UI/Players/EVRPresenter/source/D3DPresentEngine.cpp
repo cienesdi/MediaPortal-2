@@ -283,7 +283,7 @@ HRESULT D3DPresentEngine::CheckDeviceState(DeviceState *pState)
 
 
 // Presents a video frame.
-HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget)
+HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget, float fRate)
 {
   HRESULT hr = S_OK;
 
@@ -300,7 +300,6 @@ HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget)
       // Get the surface from the buffer.
       hr = MFGetService(pBuffer, MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (void**)&pSurface);
       pSurface->GetContainer(IID_IDirect3DTexture9, (void**)&pTexture);
-      m_pTextureRepaint = pTexture;
       
       // Store this pointer in case we need to repaint the texture.
       CopyComPointer(m_pTextureRepaint, pTexture);
@@ -322,7 +321,14 @@ HRESULT D3DPresentEngine::PresentSample(IMFSample* pSample, LONGLONG llTarget)
   }
   if (pTexture)
   {
-    hr = m_EVRCallback->PresentSurface(m_Width, m_Height, m_ArX, m_ArY, (DWORD)(IDirect3DTexture9*) pTexture, llTarget);
+    if (llTarget != 0 && (llTarget > m_lastPresentTarget && fRate > 0.0f || llTarget < m_lastPresentTarget && fRate < 0.0f))
+    {
+      hr = m_EVRCallback->PresentSurface(m_Width, m_Height, m_ArX, m_ArY, (DWORD)(IDirect3DTexture9*) pTexture);
+    }
+    else
+      Log("D3DPresentEngine::PresentSample skipping present of invalid timed frame (last: %I64d now: %I64d rate %f)", m_lastPresentTarget, llTarget, fRate);
+
+    m_lastPresentTarget = llTarget;
   }
   SAFE_RELEASE(pTexture);
   SAFE_RELEASE(pSurface);

@@ -265,7 +265,7 @@ HRESULT Scheduler::ScheduleSample(IMFSample *pSample, BOOL bPresentNow)
     Log("Immediately present frame, bPresentNow: %d, m_pClock: 0x%x", bPresentNow, m_pClock);
     LONGLONG hnsPresentationTime;
     pSample->GetSampleTime(&hnsPresentationTime);
-    m_pCB->PresentSample(pSample, hnsPresentationTime);
+    m_pCB->PresentSample(pSample, hnsPresentationTime, m_fRate);
   }
   else
   {
@@ -418,7 +418,7 @@ bool Scheduler::ProcessSample(LONG *plNextSleep)
   if (bPresentNow)
   {
     m_framesDrawn++;    
-    hr = m_pCB->PresentSample(pSample, hnsPresentationTime);
+    hr = m_pCB->PresentSample(pSample, hnsPresentationTime, m_fRate);
   }
   else if (!bDiscardFrame)
   {

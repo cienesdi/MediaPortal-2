@@ -84,5 +84,5 @@ private:
 // Defines the callback method to present samples. 
 struct SchedulerCallback
 {
-  virtual HRESULT PresentSample(IMFSample *pSample, LONGLONG llTarget) = 0;
+  virtual HRESULT PresentSample(IMFSample *pSample, LONGLONG llTarget, float m_fRate) = 0;
 };
