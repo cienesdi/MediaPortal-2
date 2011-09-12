@@ -50,6 +50,8 @@ Scheduler::Scheduler() :
   // Init statistic counters
   m_framesDrawn = 0;
   m_framesDropped = 0;
+  m_frameStatsCounter = 0;
+  m_sumTimeToPresent = 0.0f;
 }
 
 
@@ -269,6 +271,32 @@ HRESULT Scheduler::ScheduleSample(IMFSample *pSample, BOOL bPresentNow)
   }
   else
   {
+    // stats
+    LONGLONG hnsPresentationTime, hnsTimeNow, hnsSystemTime;
+    pSample->GetSampleTime(&hnsPresentationTime);
+    m_pClock->GetCorrelatedTime(0, &hnsTimeNow, &hnsSystemTime);
+
+    // Calculate the time until the sample's presentation time. 
+    // A negative value means the sample is late.
+    LONGLONG hnsDelta = hnsPresentationTime - hnsTimeNow;
+    if (m_fRate < 0)
+    {
+      // For reverse playback, the clock runs backward. Therefore, the
+      // delta is reversed.
+      hnsDelta = - hnsDelta;
+    }
+    m_frameStatsCounter ++;
+    m_sumTimeToPresent += hnsDelta / 10000; // 100 ns to 1 ms
+    if (m_frameStatsCounter == 50)
+    {
+      Log("avg time to present: %f ms", (m_sumTimeToPresent / m_frameStatsCounter));
+      m_frameStatsCounter = 0;
+      m_sumTimeToPresent = 0.0f;
+    }
+    // stats end
+
+
+
     // Queue the sample and ask the scheduler thread to wake up.
     hr = m_ScheduledSamples.Enqueue(pSample);
 

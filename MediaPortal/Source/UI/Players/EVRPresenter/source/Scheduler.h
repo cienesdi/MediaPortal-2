@@ -78,6 +78,9 @@ private:
   // Rendering statistics
   int           m_framesDrawn;          // Total number of frames drawn
   int           m_framesDropped;        // Total number of frames dropped
+
+  int           m_frameStatsCounter;    // Frame counter for statistics
+  float         m_sumTimeToPresent;     // Summary of time in ms from arrival to present
 };
 
 
