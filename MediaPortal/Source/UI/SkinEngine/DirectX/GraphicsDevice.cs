@@ -25,10 +25,10 @@
 // Define MAX_FRAMERATE to avoid MP from targeting a fixed framerate. With MAX_FRAMERATE defined,
 // the system will output as many frames as possible. But video playback might produce wrong frames with this
 // setting, so don't use it in release builds.
-//#define MAX_FRAMERATE
+#define MAX_FRAMERATE
 
 // Define PROFILE_FRAMERATE to make MP log its current framerate every second. Don't use this setting in release builds.
-//#define PROFILE_FRAMERATE
+#define PROFILE_FRAMERATE
 
 using System;
 using System.Collections.Generic;
@@ -269,7 +269,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     {
       get { return _frameRenderingStartTime; }
     }
-    
+
     /// <summary>
     /// Sets the directx render states and project matrices.
     /// </summary>
@@ -328,6 +328,10 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       FinalTransform = TransformView * TransformProjection;
     }
 
+    private static TimeSpan _totalGuiRenderDuration;
+    private static TimeSpan _guiRenderDuration;
+    private static int _totalFrameCount = 0;
+    private static int _frameCount = 0;
     /// <summary>
     /// Renders the entire scene.
     /// </summary>
@@ -338,9 +342,10 @@ namespace MediaPortal.UI.SkinEngine.DirectX
     {
       if (_device == null || _deviceLost)
         return true;
-#if (MAX_FRAMERATE == false)
-      if (doWaitForNextFame)
-        WaitForNextFrame();
+
+      Present presentMode = Present.None;
+#if (MAX_FRAMERATE == true)
+      presentMode = Present.ForceImmediate;
 #endif
       _frameRenderingStartTime = DateTime.Now;
       lock (_setup)
@@ -348,35 +353,46 @@ namespace MediaPortal.UI.SkinEngine.DirectX
         //if (!doWaitForNextFame)
         //  DrawVideoTexture();
         //else
-          try
+        try
+        {
+          _device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
+          _device.BeginScene();
+
+          _screenManager.Render();
+
+          _device.EndScene();
+
+          TimeSpan guiDur = DateTime.Now - _frameRenderingStartTime;
+          _totalGuiRenderDuration += guiDur;
+          _guiRenderDuration += guiDur;
+          _totalFrameCount++;
+          _frameCount++;
+
+          _device.PresentEx(presentMode);
+
+          _fpsCounter += 1;
+          TimeSpan ts = DateTime.Now - _fpsTimer;
+          if (ts.TotalSeconds >= 1.0f)
           {
-            _device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
-            _device.BeginScene();
-
-            _screenManager.Render();
-
-            _device.EndScene();
-            _device.PresentEx(Present.None);
-
-            _fpsCounter += 1;
-            TimeSpan ts = DateTime.Now - _fpsTimer;
-            if (ts.TotalSeconds >= 1.0f)
-            {
-              float secs = (float) ts.TotalSeconds;
-              SkinContext.FPS = _fpsCounter / secs;
+            float totalAvgGuiTime = (float) _totalGuiRenderDuration.TotalMilliseconds / _totalFrameCount;
+            float avgGuiTime = (float) _guiRenderDuration.TotalMilliseconds / _frameCount;
+            float secs = (float) ts.TotalSeconds;
+            SkinContext.FPS = _fpsCounter / secs;
 #if PROFILE_FRAMERATE
-            ServiceRegistration.Get<ILogger>().Debug("RenderLoop: {0} frames per second, {1} total frames until last measurement", SkinContext.FPS, _fpsCounter);
+            ServiceRegistration.Get<ILogger>().Debug("RenderLoop: {0} frames per second, {1} total frames until last measurement, avg GUI render time {2} last sec: {3}", SkinContext.FPS, _fpsCounter, totalAvgGuiTime, avgGuiTime);
 #endif
-              _fpsCounter = 0;
-              _fpsTimer = DateTime.Now;
-            }
+            _fpsCounter = 0;
+            _frameCount = 0;
+            _guiRenderDuration = TimeSpan.Zero;
+            _fpsTimer = DateTime.Now;
           }
-          catch (Direct3D9Exception e)
-          {
-            ServiceRegistration.Get<ILogger>().Warn("GraphicsDevice: Lost DirectX device", e);
-            _deviceLost = true;
-            return true;
-          }
+        }
+        catch (Direct3D9Exception e)
+        {
+          ServiceRegistration.Get<ILogger>().Warn("GraphicsDevice: Lost DirectX device", e);
+          _deviceLost = true;
+          return true;
+        }
         ServiceRegistration.Get<ContentManager>().Clean();
       }
       return false;
