@@ -158,6 +158,9 @@
     <Compile Include="Controls\Visuals\KeyBindingControl.cs" />
     <Compile Include="Controls\Visuals\VirtualKeyboardPresenter.cs" />
     <Compile Include="DirectX\D3DSettings.cs" />
+    <Compile Include="DirectX\Delauney\Delauney.cs" />
+    <Compile Include="DirectX\Delauney\Edge.cs" />
+    <Compile Include="DirectX\Delauney\Triangle.cs" />
     <Compile Include="DirectX\PositionColoredTextured.cs" />
     <Compile Include="DirectX\Triangulate\GraphicsPathHelper.cs" />
     <Compile Include="DirectX\Triangulate\TriangulateHelper.cs" />
@@ -486,6 +489,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

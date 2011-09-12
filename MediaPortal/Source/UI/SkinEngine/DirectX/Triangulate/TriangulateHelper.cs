@@ -22,6 +22,8 @@
 
 #endregion
 
+#define USE_DELAUNEY
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -29,6 +31,8 @@ using System.Drawing.Drawing2D;
 using MediaPortal.UI.SkinEngine.Controls.Visuals.Shapes;
 using SlimDX;
 using SlimDX.Direct3D9;
+using Triangulator;
+using Triangulator.Geometry;
 using Matrix=SlimDX.Matrix;
 
 namespace MediaPortal.UI.SkinEngine.DirectX.Triangulate
@@ -162,7 +166,12 @@ namespace MediaPortal.UI.SkinEngine.DirectX.Triangulate
         PointF pt = path.PathPoints[i];
         points[i] = new CPoint2D(pt.X, pt.Y);
       }
+
+#if USE_DELAUNEY
+      PolygonDirection direction = PolygonDirection.Clockwise;
+#else
       PolygonDirection direction = CPolygon.GetPointsDirection(points);
+#endif
       TriangulateStroke_TriangleList(path, thickness, close, direction, out verts, layoutTransform);
     }
 
@@ -228,16 +237,27 @@ namespace MediaPortal.UI.SkinEngine.DirectX.Triangulate
         verts = null;
         return;
       }
+      PointF[] pathPoints = path.PathPoints;
       if (path.PointCount == 3)
       {
         verts = new PositionColoredTextured[3];
-
-        PointF[] pathPoints = path.PathPoints;
         verts[0].Position = new Vector3(pathPoints[0].X, pathPoints[0].Y, 1);
         verts[1].Position = new Vector3(pathPoints[1].X, pathPoints[1].Y, 1);
         verts[2].Position = new Vector3(pathPoints[2].X, pathPoints[2].Y, 1);
         return;
       }
+#if USE_DELAUNEY
+      List<PointF> points = new List<PointF>(path.PathPoints);
+      IList<Triangle> triangles = Delauney.Triangulate(points);
+      verts = new PositionColoredTextured[triangles.Count * 3];
+      int offset = 0;
+      foreach (Triangle triangle in triangles)
+      {
+        verts[offset++].Position = new Vector3(points[triangle.p1].X, points[triangle.p1].Y, 1);
+        verts[offset++].Position = new Vector3(points[triangle.p2].X, points[triangle.p2].Y, 1);
+        verts[offset++].Position = new Vector3(points[triangle.p3].X, points[triangle.p3].Y, 1);
+      }
+#else
       ICollection<CPolygon> polygons = new List<CPolygon>(new CPolygon(path).Triangulate());
 
       verts = new PositionColoredTextured[polygons.Count * 3];
@@ -248,6 +268,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX.Triangulate
         verts[offset++].Position = new Vector3(triangle[1].X, triangle[1].Y, 1);
         verts[offset++].Position = new Vector3(triangle[2].X, triangle[2].Y, 1);
       }
+#endif
     }
 
     /// <summary>
