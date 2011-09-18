@@ -41,7 +41,6 @@ using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.SkinEngine.ContentManagement;
 using MediaPortal.UI.SkinEngine.Players;
 using MediaPortal.UI.SkinEngine.ScreenManagement;
-using MediaPortal.UI.SkinEngine.SkinManagement;
 using SlimDX;
 using SlimDX.Direct3D9;
 
@@ -100,6 +99,8 @@ namespace MediaPortal.UI.SkinEngine.DirectX
 
     public static void Dispose()
     {
+      StatsRenderer.Dispose();
+
       if (_backBuffer != null)
         _backBuffer.Dispose();
       _backBuffer = null;
@@ -328,10 +329,6 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       FinalTransform = TransformView * TransformProjection;
     }
 
-    private static TimeSpan _totalGuiRenderDuration;
-    private static TimeSpan _guiRenderDuration;
-    private static int _totalFrameCount = 0;
-    private static int _frameCount = 0;
     /// <summary>
     /// Renders the entire scene.
     /// </summary>
@@ -358,34 +355,17 @@ namespace MediaPortal.UI.SkinEngine.DirectX
           _device.Clear(ClearFlags.Target, Color.Black, 1.0f, 0);
           _device.BeginScene();
 
+#if PROFILE_FRAMERATE
+          StatsRenderer.BeginScene();
+#endif
           _screenManager.Render();
 
+#if PROFILE_FRAMERATE
+          StatsRenderer.EndScene();
+#endif
           _device.EndScene();
 
-          TimeSpan guiDur = DateTime.Now - _frameRenderingStartTime;
-          _totalGuiRenderDuration += guiDur;
-          _guiRenderDuration += guiDur;
-          _totalFrameCount++;
-          _frameCount++;
-
           _device.PresentEx(presentMode);
-
-          _fpsCounter += 1;
-          TimeSpan ts = DateTime.Now - _fpsTimer;
-          if (ts.TotalSeconds >= 1.0f)
-          {
-            float totalAvgGuiTime = (float) _totalGuiRenderDuration.TotalMilliseconds / _totalFrameCount;
-            float avgGuiTime = (float) _guiRenderDuration.TotalMilliseconds / _frameCount;
-            float secs = (float) ts.TotalSeconds;
-            SkinContext.FPS = _fpsCounter / secs;
-#if PROFILE_FRAMERATE
-            ServiceRegistration.Get<ILogger>().Debug("RenderLoop: {0} frames per second, {1} total frames until last measurement, avg GUI render time {2} last sec: {3}", SkinContext.FPS, _fpsCounter, totalAvgGuiTime, avgGuiTime);
-#endif
-            _fpsCounter = 0;
-            _frameCount = 0;
-            _guiRenderDuration = TimeSpan.Zero;
-            _fpsTimer = DateTime.Now;
-          }
         }
         catch (Direct3D9Exception e)
         {
