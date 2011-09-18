@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using MediaPortal.UI.SkinEngine.DirectX.Triangulate;
 
 namespace Triangulator
 {
@@ -236,6 +237,47 @@ namespace Triangulator
       float drsqr = dx * dx + dy * dy;
 
       return (drsqr <= rsqr);
+    }
+
+    /// <summary>
+    /// Checks if the vertices of the polygon with the given <paramref name="points"/> are ordered
+    /// in clockwise or counter clockwise direction.
+    /// </summary>
+    /// <remarks>
+    /// Restriction: the polygon is not self intersecting.
+    /// See http://local.wasp.uwa.edu.au/~pbourke/geometry/clockwise/index.html
+    /// </remarks>
+    public static PolygonDirection GetPointsDirection(IList<PointF> points)
+    {
+      int nCount = 0;
+      int nVertices = points.Count;
+
+      for (int i = 0; i < nVertices; i++)
+      {
+        int j = (i + 1) % nVertices;
+        int k = (i + 2) % nVertices;
+
+        float crossProduct = GetCrossProduct(points[i], points[j], points[k]);
+
+        if (crossProduct > 0)
+          nCount++;
+        else
+          nCount--;
+      }
+
+      return nCount < 0 ? PolygonDirection.Counter_Clockwise : PolygonDirection.Clockwise;
+    }
+
+    /// <summary>
+    /// Returns the cross product of the vectors between three consecutive vertices.
+    /// </summary>
+    /// <param name="vi">First vertex.</param>
+    /// <param name="vj">Second vertex.</param>
+    /// <param name="vk">Third vertex.</param>
+    /// <returns>Cross product: (vj - vi) x (vk - vj)</returns>
+    public static float GetCrossProduct(PointF vi, PointF vj, PointF vk)
+    {
+      return (vj.X - vi.X) * (vk.Y - vj.Y) - (vj.Y - vi.Y) * (vk.X - vj.X);
     }
   }
 }

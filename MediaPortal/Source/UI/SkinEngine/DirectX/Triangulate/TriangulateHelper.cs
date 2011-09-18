@@ -160,16 +160,15 @@ namespace MediaPortal.UI.SkinEngine.DirectX.Triangulate
     public static void TriangulateStroke_TriangleList(GraphicsPath path, float thickness, bool close,
         out PositionColoredTextured[] verts, Matrix? layoutTransform)
     {
+#if USE_DELAUNEY
+      PolygonDirection direction = Delauney.GetPointsDirection(path.PathPoints);
+#else
       CPoint2D[] points = new CPoint2D[path.PathPoints.Length];
       for (int i = 0; i < path.PointCount; i++)
       {
         PointF pt = path.PathPoints[i];
         points[i] = new CPoint2D(pt.X, pt.Y);
       }
-
-#if USE_DELAUNEY
-      PolygonDirection direction = PolygonDirection.Clockwise;
-#else
       PolygonDirection direction = CPolygon.GetPointsDirection(points);
 #endif
       TriangulateStroke_TriangleList(path, thickness, close, direction, out verts, layoutTransform);
